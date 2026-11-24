@@ -104,6 +104,7 @@ export default function App() {
   const [restoring, setRestoring] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -161,6 +162,7 @@ export default function App() {
   }, [user, loadQuestions]);
 
   async function login() {
+    setLoginError("");
     try {
       setLoading(true);
       const result = await api("/api/auth/login", {
@@ -168,12 +170,19 @@ export default function App() {
         body: JSON.stringify({ email: email.trim(), senha: password }),
       });
       const session = { usuario: result.usuario, token: result.token };
-      await SecureStore.setItemAsync("session", JSON.stringify(session));
+      // Login should not depend on local session storage.
       setUser(result.usuario);
       setToken(result.token);
       setPassword("");
+      try {
+        await SecureStore.setItemAsync("session", JSON.stringify(session));
+      } catch (storageError) {
+        console.warn("N?o foi poss?vel salvar a sess?o localmente.", storageError);
+      }
     } catch (e) {
-      Alert.alert("Não foi possível entrar", e.message);
+      const message = e.message || "Verifique sua conex?o e tente novamente.";
+      setLoginError(message);
+      Alert.alert("N?o foi poss?vel entrar", message);
     } finally {
       setLoading(false);
     }
@@ -279,6 +288,7 @@ export default function App() {
             placeholder="Sua senha"
             secureTextEntry
           />
+          {!!loginError && <Text style={styles.loginError}>{loginError}</Text>}
           <Button
             title={loading ? "Entrando…" : "Entrar"}
             onPress={login}
@@ -718,6 +728,7 @@ const styles = StyleSheet.create({
   },
   errorBox: { backgroundColor: "#fff0ee", padding: 15, borderRadius: 13 },
   errorText: { color: colors.red, marginBottom: 8 },
+  loginError: { color: colors.red, fontSize: 13, lineHeight: 19, marginBottom: 12 },
   professorBox: {
     padding: 14,
     backgroundColor: colors.white,
