@@ -1,0 +1,195 @@
+DOCUMENTAÇÃO DO PROJETO
+Estuda Matemática - SESI/SENAI
+
+1. OBJETIVO
+
+O projeto apresenta um aplicativo multiplataforma para consulta de questões de matemática.
+O usuário faz login, pesquisa e filtra questões, visualiza alternativas, respostas e
+explicações e acessa recursos administrativos quando possui o perfil de professor.
+
+2. TECNOLOGIAS UTILIZADAS
+
+- React 19
+- React Native 0.81.5
+- Expo 54
+- Expo Secure Store 15
+- React Native Web
+- TypeScript 5.9
+- API REST hospedada na Vercel
+
+3. ESTRUTURA DA INTERFACE
+
+O aplicativo possui uma tela de login e uma tela principal.
+
+Na tela de login, o usuário informa e-mail e senha. Após autenticação, a sessão é armazenada
+localmente pelo Expo Secure Store. Ao reabrir o aplicativo, a sessão salva é restaurada.
+
+Na tela principal, o usuário pode:
+
+- pesquisar questões pelo enunciado;
+- filtrar por nível base, intermediário ou avançado;
+- informar um ano opcional;
+- visualizar alternativas;
+- abrir ou fechar a resposta correta e a explicação;
+- encerrar a sessão.
+
+Usuários com perfil "professor" também podem criar, editar e excluir questões.
+
+4. INTEGRAÇÃO COM A API
+
+URL base:
+https://apihub-roan.vercel.app
+
+O arquivo App.js monta as chamadas HTTP combinando a URL configurada em
+EXPO_PUBLIC_API_URL com os caminhos das rotas.
+
+POST /api/auth/login
+Realiza o login.
+
+Corpo enviado:
+{
+  "email": "usuario@exemplo.com",
+  "senha": "senha"
+}
+
+A aplicação espera receber no mínimo:
+{
+  "usuario": {
+    "email": "usuario@exemplo.com",
+    "perfil": "professor"
+  },
+  "token": "token"
+}
+
+GET /api/questoes
+Lista todas as questões.
+
+GET /api/questoes?q=texto&nivel=base&ano=2024
+Filtra questões pelo texto do enunciado, pelo nível e pelo ano.
+
+POST /api/questoes
+Cria uma questão. Requer autorização.
+
+PUT /api/questoes/:id
+Atualiza uma questão. Requer autorização.
+
+DELETE /api/questoes/:id
+Exclui uma questão. Requer autorização.
+
+Para as operações protegidas, o frontend envia o token no cabeçalho:
+Authorization: Bearer <token>
+
+5. CONFIGURAÇÃO DO AMBIENTE
+
+Copie o arquivo .env.example para .env e configure:
+
+EXPO_PUBLIC_API_URL=https://apihub-roan.vercel.app
+
+Não adicione barra "/" no final da URL.
+
+Após alterar o arquivo .env, reinicie o servidor Expo:
+npx expo start --clear
+
+Em dispositivos físicos, utilize a URL pública da API. O endereço localhost representa o
+computador local e nem sempre será acessível pelo celular ou pela versão publicada.
+
+6. INSTALAÇÃO DAS DEPENDÊNCIAS
+
+Pré-requisitos:
+- Node.js;
+- npm;
+- Expo Go ou emulador Android/iOS.
+
+Instalar:
+npm install
+
+Executar:
+npm start
+
+Executar no Android:
+npm run android
+
+Executar no iOS:
+npm run ios
+
+7. CONFIGURAÇÃO DE CORS NO BACKEND
+
+O navegador exige que o backend devolva cabeçalhos CORS válidos. O servidor Express publicado
+na Vercel deve permitir os métodos GET, POST, PUT, DELETE e OPTIONS e os cabeçalhos
+Content-Type, Authorization e Accept.
+
+Exemplo em Express:
+
+import cors from "cors";
+
+app.use(cors({
+  origin: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"]
+}));
+
+app.options("*", cors());
+
+O backend também deve validar o perfil do usuário nas operações de escrita. A interface mostrar
+botões de gerenciamento apenas para o perfil "professor", mas essa ocultação não substitui a
+proteção no servidor.
+
+8. PRINCIPAIS ARQUIVOS
+
+App.js
+Contém as telas, os estados, as chamadas HTTP, a sessão local e os estilos.
+
+.env
+Contém a URL real da API no ambiente local.
+
+.env.example
+Modelo para a configuração da URL da API.
+
+app.json
+Configuração do aplicativo Expo, nome, versão, ícones de plataforma e plugin de Secure Store.
+
+package.json
+Dependências e scripts do projeto.
+
+package-lock.json
+Registro das versões exatas das dependências instaladas.
+
+README.md
+Manual rápido em formato Markdown.
+
+9. TESTES MANUAIS
+
+Confirme a API de questões no navegador:
+https://apihub-roan.vercel.app/api/questoes
+
+Uma resposta esperada é um JSON contendo a lista de questões.
+
+Teste o preflight de login no navegador ou no terminal:
+OPTIONS https://apihub-roan.vercel.app/api/auth/login
+
+Cabeçalhos esperados na resposta:
+- Access-Control-Allow-Origin;
+- Access-Control-Allow-Methods;
+- Access-Control-Allow-Headers.
+
+Teste o login com e-mail e senha válidos por meio da tela do aplicativo.
+O login deve salvar o usuário e o token no Secure Store.
+
+Após o login, a tela deve carregar automaticamente o GET /api/questoes.
+
+10. DIAGNÓSTICO
+
+CORS Missing Allow Origin:
+A API não está retornando os cabeçalhos CORS necessários. Corrija e faça novo deploy no backend.
+
+OPTIONS /api/auth/login retorna erro:
+Verifique o tratamento de preflight no backend e confirme se o novo deploy foi publicado.
+
+API não encontrada no aplicativo:
+Confira EXPO_PUBLIC_API_URL, reinicie o Expo e confirme se a URL pública está disponível.
+
+Login não autentica:
+Confirme se a API publica a rota /api/auth/login, se o método é POST e se o corpo contém email e senha.
+
+Questões não aparecem:
+Confirme o GET /api/questoes, os filtros utilizados e a resposta exibida no Inspector.
