@@ -163,7 +163,7 @@ export default function App() {
   async function login() {
     try {
       setLoading(true);
-      const result = await api("/login", {
+      const result = await api("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email: email.trim(), senha: password }),
       });
