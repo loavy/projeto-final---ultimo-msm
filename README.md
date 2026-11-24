@@ -7,7 +7,7 @@ Aplicativo multiplataforma em React Native com Expo. O app consome a API do proj
 Edite `.env` na raiz e informe o endereço público do backend:
 
 ```env
-EXPO_PUBLIC_API_URL=https://seu-backend-publicado.com
+EXPO_PUBLIC_API_URL=https://apihub-roan.vercel.app/
 ```
 
 A URL de produção não estava cadastrada no repositório. Sem ela, as telas abrem, mas as chamadas da API não funcionam. Não use `localhost` no celular físico; use o domínio público ou o IP de rede do computador.
